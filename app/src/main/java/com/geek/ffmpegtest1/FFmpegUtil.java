@@ -1,9 +1,6 @@
 package com.geek.ffmpegtest1;
 
 import android.os.AsyncTask;
-import android.util.Log;
-
-import java.util.ArrayList;
 
 /**
  * Created by ${chenM} on 2018/11/8.
