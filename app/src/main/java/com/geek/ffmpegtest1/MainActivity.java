@@ -157,4 +157,10 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "只能两个", Toast.LENGTH_SHORT).show();
         }
     }
+
+    public void onOpenCv(View view) {
+        Intent intent = new Intent();
+        intent.setClass(this,OpencvActivity.class);
+        startActivity(intent);
+    }
 }

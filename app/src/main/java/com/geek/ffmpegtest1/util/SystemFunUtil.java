@@ -26,6 +26,7 @@ public class SystemFunUtil {
     public static final int SYSTEM_VIDEO = 1;//视频
     public static final int SYSTEM_VOICE = 2;//音频
     public static final int SYSTEM_IMAGE_PHONE = 3;//本地相册
+    public static final int SYSTEM_SELECT_IMAGE = 4;
     public static final String APP_FILE_NAMES = "SystemResources";
     private File imgFile;//保存图片的文件
 
@@ -89,6 +90,11 @@ public class SystemFunUtil {
                     Intent getAlbum = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     getAlbum.setType("video/*");
                     context.startActivityForResult(getAlbum, flag);
+                    break;
+                case SYSTEM_SELECT_IMAGE:
+                    Intent image = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    image.setType("image/*");
+                    context.startActivityForResult(image, flag);
                     break;
                 default:
                     break;
