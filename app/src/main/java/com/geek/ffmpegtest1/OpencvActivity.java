@@ -1,6 +1,7 @@
 package com.geek.ffmpegtest1;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,6 +32,7 @@ public class OpencvActivity extends AppCompatActivity {
     private Bitmap bitmap ,bitmap1;
     private List<String> mList = new ArrayList<>();
     private String savePath;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,9 @@ public class OpencvActivity extends AppCompatActivity {
                 img2.setImageBitmap(result);
             }
         });
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
 
     }
 
@@ -113,10 +118,22 @@ public class OpencvActivity extends AppCompatActivity {
         savePath = FileUtil.getFolderName(mList.get(0));
         savePath = savePath + "IMG_MERGE.jpg";
         if (mList.size()>0){
-            int split = OpencvUtil.split(mList.get(0), mList.get(1),savePath);
-            Log.d("chenmeng","--"+split);
-            Bitmap bitmap = BitmapFactory.decodeFile(savePath);
-            img2.setImageBitmap(bitmap);
+            OpencvUtil.execute(mList.get(0), mList.get(1), savePath, new OpencvUtil.OpenCVRunListener() {
+                @Override
+                public void onStart() {
+                    progressDialog.show();
+                }
+
+                @Override
+                public void onEnd(double result) {
+                    progressDialog.dismiss();
+
+                    Toast.makeText(OpencvActivity.this,"时间："+result,Toast.LENGTH_SHORT).show();
+
+                    Bitmap bitmap = BitmapFactory.decodeFile(savePath);
+                    img2.setImageBitmap(bitmap);
+                }
+            });
         }
     }
 

@@ -12,38 +12,38 @@ public class OpencvUtil {
         System.loadLibrary("OpenCV");
     }
 
-//    public static void execute(int[] pix, int width,int height,final OpenCVRunListener listener){
-//        new AsyncTask<String[],Integer,Integer>(){
-//
-//            @Override
-//            protected void onPreExecute() {
-//                if (listener != null) {
-//                    listener.onStart();
-//                }
-//            }
-//
-//            @Override
-//            protected Integer doInBackground(String[]... params) {
-//                return run(params[0]);
-//            }
-//
-//            @Override
-//            protected void onPostExecute(Integer integer) {
-//                if (listener != null) {
-//                    listener.onEnd(integer);
-//                }
-//            }
-//        }.execute(commands);
-//    }
+    public static void execute(String img1,String img2,String path,final OpenCVRunListener listener){
+        new AsyncTask<String, Double, Double>(){
+
+            @Override
+            protected void onPreExecute() {
+                if (listener != null) {
+                    listener.onStart();
+                }
+            }
+
+            @Override
+            protected Double doInBackground(String... params) {
+                return split(params[0],params[1],params[2]);
+            }
+
+            @Override
+            protected void onPostExecute(Double integer) {
+                if (listener != null) {
+                    listener.onEnd(integer);
+                }
+            }
+        }.execute(img1,img2,path);
+    }
 
 
     public interface OpenCVRunListener{
         void onStart();
-        void onEnd(int result);
+        void onEnd(double result);
     }
 
     public static native int[] gray(int[] pix,int width,int height);
 
-    public static native int split(String img1,String img2,String path);
+    private static native double split(String img1,String img2,String path);
 
 }

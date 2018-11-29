@@ -29,7 +29,7 @@ string jstring2str(JNIEnv* env, jstring jstr);
 //计算原始图像点位在经过矩阵变换后在目标图像上对应位置
 Point2f getTransformPoint(const Point2f originalPoint, const Mat &transformMaxtri);
 
-JNIEXPORT jint JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_split(JNIEnv *env, jclass clz, jstring img1, jstring img2,jstring img3){
+JNIEXPORT jdouble JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_split(JNIEnv *env, jclass clz, jstring img1, jstring img2,jstring img3){
 /*
   //img_names.push_back(jstring2str(env,img1));
   //img_names.push_back(jstring2str(env,img2));
@@ -156,11 +156,15 @@ JNIEXPORT jint JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_split(JNIEnv *env, j
 
   //int ret = splice(jstring2str(env,img1),jstring2str(env,img2),jstring2str(env,img3));
 
+    double time = getTickCount();
+
+    LOGD("match start time=%f\n", time);
+
     Mat pano;
 
-  Stitcher stitcher = Stitcher::createDefault(false);
+    Stitcher stitcher = Stitcher::createDefault(false);
 
-  vector<Mat>img_names;
+    vector<Mat>img_names;
 
     Mat image01 = cv::imread(jstring2str(env,img1));
     cvtColor(image01, image01, CV_BGRA2BGR);
@@ -172,14 +176,18 @@ JNIEXPORT jint JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_split(JNIEnv *env, j
     img_names.push_back(image02);
 
     vector<int>compression_params;
-     compression_params.push_back(IMWRITE_JPEG_PROGRESSIVE);
+    compression_params.push_back(IMWRITE_JPEG_PROGRESSIVE);
 
 
-   Stitcher::Status status = stitcher.stitch(img_names, pano);
+    Stitcher::Status status = stitcher.stitch(img_names, pano);
 
-   imwrite(jstring2str(env,img3), pano,compression_params);
+    time = getTickCount() - time;
+    time /= getTickFrequency();
+    LOGD("match time=%f\n", time);
 
-  return 0;
+    imwrite(jstring2str(env,img3), pano,compression_params);
+
+  return time;
 }
 
 string jstring2str(JNIEnv* env, jstring jstr)
