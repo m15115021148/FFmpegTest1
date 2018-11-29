@@ -1,7 +1,3 @@
-//
-// Created by fuzr1 on 2017/8/20.
-//
-//first step add below
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,492 +5,181 @@
 #include <android/log.h>
 #include <iostream>
 #include <fstream>
-//first step end
 
-//second step
-//#include "stdafx.h"
-//second step end
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/features2d/features2d.hpp"
-
-//#include "pch.h"
-#include <iostream>
-#include <fstream>
-#include <string>
-#include "opencv2/opencv_modules.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/stitching/detail/autocalib.hpp"
-#include "opencv2/stitching/detail/blenders.hpp"
-#include "opencv2/stitching/detail/camera.hpp"
-#include "opencv2/stitching/detail/exposure_compensate.hpp"
-#include "opencv2/stitching/detail/matchers.hpp"
-#include "opencv2/stitching/detail/motion_estimators.hpp"
-#include "opencv2/stitching/detail/seam_finders.hpp"
-#include "opencv2/stitching/detail/util.hpp"
-#include "opencv2/stitching/detail/warpers.hpp"
-#include "opencv2/stitching/warpers.hpp"
+#include <opencv2/opencv.hpp>
+//#include <opencv2/stitching/stitcher.hpp>
+//#include "custom_surf.h"
 
 using namespace cv;
 using namespace std;
-#define LOG_TAG "CombinePicture"
+
+#define LOG_TAG "Splice"
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
-//third step
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define ENABLE_LOG 0
-
-// Default command line args
-
-
-
-//third step end
 string jstring2str(JNIEnv* env, jstring jstr);
 
-// fiveth step
-JNIEXPORT jlong JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_split(JNIEnv *env, jclass clz, jstring img1, jstring img2)
-//int main()
-//fiveth step end
-{
+//计算原始图像点位在经过矩阵变换后在目标图像上对应位置
+Point2f getTransformPoint(const Point2f originalPoint, const Mat &transformMaxtri);
 
-vector<string> img_names;
-bool preview = false;
-bool try_gpu = true;
-double work_megapix = 0.6;
-double seam_megapix = 0.1;
-double compose_megapix = -1;
-float conf_thresh = 1.f;
-string features_type = "surf";
-string ba_cost_func = "ray";
-string ba_refine_mask = "xxxxx";
-bool do_wave_correct = false;
-cv::detail::WaveCorrectKind wave_correct = detail::WAVE_CORRECT_HORIZ;
-bool save_graph = false;
-std::string save_graph_to;
-string warp_type = "cylindrical";
-int expos_comp_type = cv::detail::ExposureCompensator::GAIN_BLOCKS;
-float match_conf = 0.3f;
-string seam_find_type = "dp_colorgrad";
-int blend_type = cv::detail::Blender::MULTI_BAND;
-float blend_strength = 3;
-string result_name = "result.jpg";
+JNIEXPORT jint JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_split(JNIEnv *env, jclass clz, jstring img1, jstring img2,jstring img3){
+/*
+  //img_names.push_back(jstring2str(env,img1));
+  //img_names.push_back(jstring2str(env,img2));
 
-Mat result, result_mask;
-
-  img_names.push_back(jstring2str(env,img1));
-  img_names.push_back(jstring2str(env,img2));
+  //LOGD("open image1 %s" , img_names[0].c_str());
+  //LOGD("open image2 %s" , img_names[1].c_str());
 
 
-  //img_names.push_back("cam2.jpg");
-  //img_names.push_back("cam1.jpg");
+  //Mat image01 =  Mat(*(Mat*)img1);
+  //cvtColor(image01, image01, CV_BGRA2BGR);
+  //Mat image02  =  Mat(*(Mat*)img2);
+  //cvtColor(image02, image02, CV_BGRA2BGR);
 
-#if ENABLE_LOG
-  int64 app_start_time = getTickCount();
-#endif
+  Mat image01 = cv::imread(jstring2str(env,img1));
+  cvtColor(image01, image01, CV_BGRA2BGR);
+  Mat image02 = cv::imread(jstring2str(env,img2));
+  cvtColor(image02, image02, CV_BGRA2BGR);
 
-  cv::setBreakOnError(true);
-
-  /*int retval = parseCmdArgs(argc, argv);
-  if (retval)
-    return retval;*/
-
-    // Check if have enough images
-  int num_images = static_cast<int>(img_names.size());
-  if (num_images < 2)
+  if (image01.empty() || image02.empty())
   {
-    //LOGLN("Need more images");
-    return -1;
+    //  printf("the loader the picture failed");
+    //  waitKey();
+      LOGD("there is some image input wrong");
+      return 0;//图像没有全部读取成功
   }
 
-  double work_scale = 1, seam_scale = 1, compose_scale = 1;
-  bool is_work_scale_set = false, is_seam_scale_set = false, is_compose_scale_set = false;
+  double time = getTickCount();
 
-  //LOGLN("Finding features...");
-#if ENABLE_LOG
-  int64 t = getTickCount();
-#endif
+  LOGD("match start time=%f\n", time);
 
-  Ptr<cv::detail::FeaturesFinder> finder;
-  //cut 1
-  finder = new cv::detail::SurfFeaturesFinder();
+  //灰度图转换
+  Mat image1, image2;
+  cvtColor(image01, image1, CV_RGB2GRAY);
+  cvtColor(image02, image2, CV_RGB2GRAY);
 
+  //提取特征点
+  //SiftFeatureDetector siftDetector(800);  // 海塞矩阵阈值
+  Ptr<FeatureDetector> fastDetector = FastFeatureDetector::create();
+  vector<KeyPoint> keyPoint1, keyPoint2;
+  fastDetector->detect(image1, keyPoint1);
+  fastDetector->detect(image2, keyPoint2);
 
-  Mat full_img, img;
-  vector<cv::detail::ImageFeatures> features(num_images);
-  vector<Mat> images(num_images);
-  vector<Size> full_img_sizes(num_images);
-  double seam_work_aspect = 1;
+  //特征点描述，为下边的特征点匹配做准备
+  Ptr<DescriptorExtractor> BriskDescriptor = BRISK::create();
+  Mat imageDesc1, imageDesc2;
+  BriskDescriptor->compute(image1, keyPoint1, imageDesc1);
+  BriskDescriptor->compute(image2, keyPoint2, imageDesc2);
 
-
-
-  for (int i = 0; i < num_images; ++i)
+  //获得匹配特征点，并提取最优配对
+  Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce");
+  //FlannBasedMatcher matcher;
+  vector<DMatch> matchePoints;
+  matcher->match(imageDesc1, imageDesc2, matchePoints, Mat());
+  if (matchePoints.size() < 10)
   {
-    full_img = imread(img_names[i]);
-    full_img_sizes[i] = full_img.size();
+      LOGD("the match point is below 10");
+      //waitKey();
+      return 0;
+  }
+  sort(matchePoints.begin(), matchePoints.end()); //特征点排序，opencv按照匹配点准确度排序
+  //获取排在前N个的最优匹配特征点
+  vector<Point2f> imagePoints1, imagePoints2;
+  for (int i = 0; i<10; i++)
+  {
+      imagePoints1.push_back(keyPoint1[matchePoints[i].queryIdx].pt);
+      imagePoints2.push_back(keyPoint2[matchePoints[i].trainIdx].pt);
+  }
 
-    if (full_img.empty())
-    {
-      //LOGLN("Can't open image " << img_names[i]);
-      return -1;
-    }
-    if (work_megapix < 0)
-    {
-      img = full_img;
-      work_scale = 1;
-      is_work_scale_set = true;
-    }
-    else
-    {
-      if (!is_work_scale_set)
+  //获取图像1到图像2的投影映射矩阵，尺寸为3*3
+  Mat homo = findHomography(imagePoints1, imagePoints2, CV_RANSAC);
+  Mat adjustMat;
+  adjustMat = (Mat_<double>(3, 3) << 1.0, 0, image01.cols, 0, 1.0, 0, 0, 0, 1.0);//向后偏移image01.cols矩阵
+  //Mat adjustMat =Mat::eye(cv::Size(3,3),CV_64F);
+ // adjustMat.at<double>(0, 2) = image01.cols;
+  Mat adjustHomo = adjustMat*homo;//矩阵相乘，先偏移
+
+  //获取最强配对点（就是第一个配对点）在原始图像和矩阵变换后图像上的对应位置，用于图像拼接点的定位
+  Point2f originalLinkPoint, targetLinkPoint, basedImagePoint;
+  originalLinkPoint = keyPoint1[matchePoints[0].queryIdx].pt;
+  targetLinkPoint = getTransformPoint(originalLinkPoint, adjustHomo);
+  basedImagePoint = keyPoint2[matchePoints[0].trainIdx].pt;
+
+  //图像配准
+  Mat imageTransform;
+  //将图片1进行映射到图像2，本来映射后x值为负值，但是把映射矩阵向后偏移image01.cols矩阵
+  //我们很难判断出拼接后图像的大小尺寸，为了尽可能保留原来的像素，我们尽可能的大一些，对于拼接后的图片可以进一步剪切无效或者不规则的边缘
+  warpPerspective(image01, imageTransform, adjustMat*homo, Size(image02.cols + image01.cols + 10, image02.rows));
+
+  //在最强匹配点的位置处衔接，最强匹配点左侧是图1，右侧是图2，这样直接替换图像衔接不好，光线有突变
+  //Mat ROIMat = image02(Rect(Point(basedImagePoint.x, 0), Point(image02.cols, image02.rows)));
+  //ROIMat.copyTo(Mat(imageTransform1, Rect(targetLinkPoint.x, 0, image02.cols - basedImagePoint.x + 1, image02.rows)));
+
+  //在最强匹配点左侧的重叠区域进行累加，是衔接稳定过渡，消除突变
+  Mat image1Overlap, image2Overlap; //图1和图2的重叠部分
+  image1Overlap = imageTransform(Rect(Point(targetLinkPoint.x - basedImagePoint.x, 0), Point(targetLinkPoint.x, image02.rows)));
+  image2Overlap = image02(Rect(0, 0, image1Overlap.cols, image1Overlap.rows));
+  Mat image1ROICopy = image1Overlap.clone();  //复制一份图1的重叠部分
+  for (int i = 0; i<image1Overlap.rows; i++)
+  {
+      for (int j = 0; j<image1Overlap.cols; j++)
       {
-        work_scale = min(1.0, sqrt(work_megapix * 1e6 / full_img.size().area()));
-        is_work_scale_set = true;
+          double weight;
+          weight = (double)j / image1Overlap.cols;  //随距离改变而改变的叠加系数
+          image1Overlap.at<Vec3b>(i, j)[0] = (1 - weight)*image1ROICopy.at<Vec3b>(i, j)[0] + weight*image2Overlap.at<Vec3b>(i, j)[0];
+          image1Overlap.at<Vec3b>(i, j)[1] = (1 - weight)*image1ROICopy.at<Vec3b>(i, j)[1] + weight*image2Overlap.at<Vec3b>(i, j)[1];
+          image1Overlap.at<Vec3b>(i, j)[2] = (1 - weight)*image1ROICopy.at<Vec3b>(i, j)[2] + weight*image2Overlap.at<Vec3b>(i, j)[2];
       }
-      resize(full_img, img, Size(), work_scale, work_scale);
-    }
-    if (!is_seam_scale_set)
-    {
-      seam_scale = min(1.0, sqrt(seam_megapix * 1e6 / full_img.size().area()));
-      seam_work_aspect = seam_scale / work_scale;
-      is_seam_scale_set = true;
-    }
-
-    (*finder)(img, features[i]);
-    features[i].img_idx = i;
-    //LOGLN("Features in image #" << i + 1 << ": " << features[i].keypoints.size());
-    //string output_imgtype = to_string(i++) + "cece";;
-    //LOGLN("Features in image #" << i + 1 << ": " << features[i].keypoints.size());
-    Mat output_img;
-    drawKeypoints(img, features[i].keypoints, output_img, Scalar::all(-1));
-    namedWindow("11");
-    imshow("11", output_img);
-    resize(full_img, img, Size(), seam_scale, seam_scale);
-    images[i] = img.clone();
   }
+  Mat ROIMat = image02(Rect(Point(image1Overlap.cols, 0), Point(image02.cols, image02.rows)));  //图2中不重合的部分
+  ROIMat.copyTo(Mat(imageTransform, Rect(targetLinkPoint.x, 0, ROIMat.cols, image02.rows))); //不重合的部分直接衔接上去
 
-  finder->collectGarbage();
-  full_img.release();
-  img.release();
+  time = getTickCount() - time;
+  time /= getTickFrequency();
+  LOGD("match time=%f\n", time);
 
-  //LOGLN("Finding features, time: " << ((getTickCount() - t) / getTickFrequency()) << " sec");
+  vector<int>compression_params;
+  //compression_params.push_back(IMWRITE_PNG_COMPRESSION);
+  compression_params.push_back(IMWRITE_JPEG_PROGRESSIVE);
+ // compression_params.push_back(9);
 
-  //LOG("Pairwise matching");
-#if ENABLE_LOG
-  t = getTickCount();
-#endif
-  vector<cv::detail::MatchesInfo> pairwise_matches;
-  cv::detail::BestOf2NearestMatcher matcher(try_gpu, match_conf);
-  matcher(features, pairwise_matches);
-  matcher.collectGarbage();
-  //LOGLN("Pairwise matching, time: " << ((getTickCount() - t) / getTickFrequency()) << " sec");
+  //Mat *ret = new Mat(imageTransform);
 
-  // Check if we should save matches graph
-  if (save_graph)//no
-  {
-    //LOGLN("Saving matches graph...");
-    ofstream f(save_graph_to.c_str());
-   // f << matchesGraphAsString(img_names, pairwise_matches, conf_thresh);
-  }
+  imwrite(jstring2str(env,img3), imageTransform,compression_params);*/
 
-  // Leave only images we are sure are from the same panorama
-  vector<int> indices = leaveBiggestComponent(features, pairwise_matches, conf_thresh);
-  vector<Mat> img_subset;
-  vector<string> img_names_subset;
-  vector<Size> full_img_sizes_subset;
-  for (size_t i = 0; i < indices.size(); ++i)
-  {
-    img_names_subset.push_back(img_names[indices[i]]);
-    img_subset.push_back(images[indices[i]]);
-    full_img_sizes_subset.push_back(full_img_sizes[indices[i]]);
-  }
+  //int ret = splice(jstring2str(env,img1),jstring2str(env,img2),jstring2str(env,img3));
 
-  images = img_subset;
-  img_names = img_names_subset;
-  full_img_sizes = full_img_sizes_subset;
+    Mat pano;
 
-  // Check if we still have enough images
-  num_images = static_cast<int>(img_names.size());
-  if (num_images < 2)
-  {
-    //LOGLN("Need more images");
-    return -1;
-  }
+  Stitcher stitcher = Stitcher::createDefault(false);
 
-  //double ttt = getTickCount();
-  //以下需要20sec
+  vector<Mat>img_names;
 
-  cv::detail::HomographyBasedEstimator estimator;
-  vector<cv::detail::CameraParams> cameras;
-  estimator(features, pairwise_matches, cameras);
-  //same to estimateFocal
+    Mat image01 = cv::imread(jstring2str(env,img1));
+    cvtColor(image01, image01, CV_BGRA2BGR);
 
-  for (size_t i = 0; i < cameras.size(); ++i)
-  {
-    Mat R;
-    cameras[i].R.convertTo(R, CV_32F);
-    cameras[i].R = R;
-    //LOGLN("Initial intrinsics #" << indices[i] + 1 << ":\n" << cameras[i].K());
-  }
+    Mat image02 = cv::imread(jstring2str(env,img2));
+        cvtColor(image02, image02, CV_BGRA2BGR);
 
-  Ptr<detail::BundleAdjusterBase> adjuster;
-  if (ba_cost_func == "reproj") adjuster = new detail::BundleAdjusterReproj();
-  else if (ba_cost_func == "ray") adjuster = new detail::BundleAdjusterRay();
-  else
-  {
-    //cout << "Unknown bundle adjustment cost function: '" << ba_cost_func << "'.\n";
-    return -1;
-  }
-  adjuster->setConfThresh(conf_thresh);
-  Mat_<uchar> refine_mask = Mat::zeros(3, 3, CV_8U);
-  if (ba_refine_mask[0] == 'x') refine_mask(0, 0) = 1;
-  if (ba_refine_mask[1] == 'x') refine_mask(0, 1) = 1;
-  if (ba_refine_mask[2] == 'x') refine_mask(0, 2) = 1;
-  if (ba_refine_mask[3] == 'x') refine_mask(1, 1) = 1;
-  if (ba_refine_mask[4] == 'x') refine_mask(1, 2) = 1;
-  adjuster->setRefinementMask(refine_mask);
-  (*adjuster)(features, pairwise_matches, cameras);
-  //BundleAdjusterRay
+    img_names.push_back(image01);
+    img_names.push_back(image02);
 
-  // Find median focal length
-  vector<double> focals;
-  for (size_t i = 0; i < cameras.size(); ++i)
-  {
-    //LOGLN("Camera #" << indices[i] + 1 << ":\n" << cameras[i].K());
-    focals.push_back(cameras[i].focal);
-  }
-
-  sort(focals.begin(), focals.end());
-  float warped_image_scale;
-  if (focals.size() % 2 == 1)
-    warped_image_scale = static_cast<float>(focals[focals.size() / 2]);
-  else
-    warped_image_scale = static_cast<float>(focals[focals.size() / 2 - 1] + focals[focals.size() / 2]) * 0.5f;
-
-  if (do_wave_correct)
-  {
-    vector<Mat> rmats;
-    for (size_t i = 0; i < cameras.size(); ++i)
-      rmats.push_back(cameras[i].R.clone());
-    waveCorrect(rmats, wave_correct);
-    for (size_t i = 0; i < cameras.size(); ++i)
-      cameras[i].R = rmats[i];
-  }
-
-  //LOGLN("Warping images (auxiliary)... ");
-#if ENABLE_LOG
-  t = getTickCount();
-#endif
-
-  vector<Point> corners(num_images);
-  vector<UMat> masks_warped(num_images);
-  vector<Mat> images_warped(num_images);
-  vector<Size> sizes(num_images);
-  vector<Mat> masks(num_images);
-
-  // Preapre images masks
-  for (int i = 0; i < num_images; ++i)
-  {
-    masks[i].create(images[i].size(), CV_8U);
-    masks[i].setTo(Scalar::all(255));
-  }
-
-  // Warp images and their masks
-
-  Ptr<WarperCreator> warper_creator;
+    vector<int>compression_params;
+     compression_params.push_back(IMWRITE_JPEG_PROGRESSIVE);
 
 
-  if (warp_type == "plane") warper_creator = new cv::PlaneWarper();
-  else if (warp_type == "cylindrical") warper_creator = new cv::CylindricalWarper();
-  else if (warp_type == "spherical") warper_creator = new cv::SphericalWarper();
-  else if (warp_type == "fisheye") warper_creator = new cv::FisheyeWarper();
-  else if (warp_type == "stereographic") warper_creator = new cv::StereographicWarper();
-  else if (warp_type == "compressedPlaneA2B1") warper_creator = new cv::CompressedRectilinearWarper(2, 1);
-  else if (warp_type == "compressedPlaneA1.5B1") warper_creator = new cv::CompressedRectilinearWarper(1.5, 1);
-  else if (warp_type == "compressedPlanePortraitA2B1") warper_creator = new cv::CompressedRectilinearPortraitWarper(2, 1);
-  else if (warp_type == "compressedPlanePortraitA1.5B1") warper_creator = new cv::CompressedRectilinearPortraitWarper(1.5, 1);
-  else if (warp_type == "paniniA2B1") warper_creator = new cv::PaniniWarper(2, 1);
-  else if (warp_type == "paniniA1.5B1") warper_creator = new cv::PaniniWarper(1.5, 1);
-  else if (warp_type == "paniniPortraitA2B1") warper_creator = new cv::PaniniPortraitWarper(2, 1);
-  else if (warp_type == "paniniPortraitA1.5B1") warper_creator = new cv::PaniniPortraitWarper(1.5, 1);
-  else if (warp_type == "mercator") warper_creator = new cv::MercatorWarper();
-  else if (warp_type == "transverseMercator") warper_creator = new cv::TransverseMercatorWarper();
+   Stitcher::Status status = stitcher.stitch(img_names, pano);
 
+   imwrite(jstring2str(env,img3), pano,compression_params);
 
-  
-
-  Ptr<cv::detail::RotationWarper> warper = warper_creator->create(static_cast<float>(warped_image_scale * seam_work_aspect));
-
-  ////
-  for (int i = 0; i < num_images; ++i)
-  {
-    Mat_<float> K;
-    cameras[i].K().convertTo(K, CV_32F);
-    float swa = (float)seam_work_aspect;
-    K(0, 0) *= swa; K(0, 2) *= swa;
-    K(1, 1) *= swa; K(1, 2) *= swa;
-
-    corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
-    sizes[i] = images_warped[i].size();
-
-    warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]);
-  }
-
-  vector<UMat> images_warped_f(num_images);
-  for (int i = 0; i < num_images; ++i)
-  {   
-    images_warped[i].convertTo(images_warped_f[i], CV_32F);
-
-  }
-  //imshow("12", images_warped_f[0]);
-  //imshow("21", images_warped_f[1]);
-  //LOGLN("Warping images, time: " << ((getTickCount() - t) / getTickFrequency()) << " sec");
-  //开始曝光补偿
- // Ptr<cv::detail::ExposureCompensator> compensator = cv::detail::ExposureCompensator::createDefault(expos_comp_type);
-  //compensator->feed(corners, images_warped, masks_warped);
-
-  Ptr<cv::detail::SeamFinder> seam_finder;
-  if (seam_find_type == "no")
-    seam_finder = new detail::NoSeamFinder();
-  else if (seam_find_type == "voronoi")
-    seam_finder = new detail::VoronoiSeamFinder();
-  else if (seam_find_type == "gc_color")
-    seam_finder = new detail::GraphCutSeamFinder(cv::detail::GraphCutSeamFinderBase::COST_COLOR);
-  else if (seam_find_type == "gc_colorgrad")  
-    seam_finder = new detail::GraphCutSeamFinder(cv::detail::GraphCutSeamFinderBase::COST_COLOR_GRAD);
-  else if (seam_find_type == "dp_color")
-    seam_finder = new detail::DpSeamFinder(cv::detail::DpSeamFinder::COLOR);
-  else if (seam_find_type == "dp_colorgrad")
-    seam_finder = new detail::DpSeamFinder(cv::detail::DpSeamFinder::COLOR_GRAD);
-  seam_finder->find(images_warped_f, corners, masks_warped);
-
-  // Release unused memory
-  images.clear();
-  images_warped.clear();
-  images_warped_f.clear();
-  masks.clear();
-
-  //LOGLN("Compositing...");
-#if ENABLE_LOG
-  t = getTickCount();
-#endif
-
-  Mat img_warped, img_warped_s;
-  Mat dilated_mask, seam_mask, mask, mask_warped;
-  Ptr<cv::detail::Blender> blender;
-  //double compose_seam_aspect = 1;
-  double compose_work_aspect = 1;
-
-    double ttt = getTickCount();
-  for (int img_idx = 0; img_idx < num_images; ++img_idx)
-  {
-    // LOGLN("Compositing image #" << indices[img_idx] + 1);
-    // Read image and resize it if necessary
-    full_img = imread(img_names[img_idx]);
-    if (!is_compose_scale_set)
-    {
-      if (compose_megapix > 0)
-        compose_scale = min(1.0, sqrt(compose_megapix * 1e6 / full_img.size().area()));
-      is_compose_scale_set = true;
-
-      // Compute relative scales
-      //compose_seam_aspect = compose_scale / seam_scale;
-      compose_work_aspect = compose_scale / work_scale;
-      cout << compose_work_aspect << endl;
-      // Update warped image scale
-      warped_image_scale *= static_cast<float>(compose_work_aspect);
-      warper = warper_creator->create(warped_image_scale);
-
-      // Update corners and sizes
-      for (int i = 0; i < num_images; ++i)
-      {
-        // Update intrinsics
-        cameras[i].focal *= compose_work_aspect;
-        cameras[i].ppx *= compose_work_aspect;
-        cameras[i].ppy *= compose_work_aspect;
-
-        // Update corner and size
-        Size sz = full_img_sizes[i];
-        if (std::abs(compose_scale - 1) > 1e-1)
-        {
-          sz.width = cvRound(full_img_sizes[i].width * compose_scale);
-          sz.height = cvRound(full_img_sizes[i].height * compose_scale);
-        }
-
-        Mat K;
-        cameras[i].K().convertTo(K, CV_32F);
-        Rect roi = warper->warpRoi(sz, K, cameras[i].R);
-        corners[i] = roi.tl();
-        sizes[i] = roi.size();
-      }
-    }
-    if (abs(compose_scale - 1) > 1e-1)
-      resize(full_img, img, Size(), compose_scale, compose_scale);
-    else
-      img = full_img;
-    full_img.release();
-    Size img_size = img.size();
-
-    Mat K;
-    cameras[img_idx].K().convertTo(K, CV_32F);
-
-    // Warp the current image
-    warper->warp(img, K, cameras[img_idx].R, INTER_LINEAR, BORDER_REFLECT, img_warped);
-
-    // Warp the current image mask
-    mask.create(img_size, CV_8U);
-    mask.setTo(Scalar::all(255));
-    warper->warp(mask, K, cameras[img_idx].R, INTER_NEAREST, BORDER_CONSTANT, mask_warped);
-
-    // Compensate exposure
-    //compensator->apply(img_idx, corners[img_idx], img_warped, mask_warped);
-
-    img_warped.convertTo(img_warped_s, CV_16S);
-    img_warped.release();
-    img.release();
-    mask.release();
-
-    dilate(masks_warped[img_idx], dilated_mask, Mat());
-    resize(dilated_mask, seam_mask, mask_warped.size());
-    mask_warped = seam_mask & mask_warped;
-
-    if (blender.empty())
-    {
-      blender = cv::detail::Blender::createDefault(blend_type, try_gpu);
-      Size dst_sz = cv::detail::resultRoi(corners, sizes).size();
-      float blend_width = sqrt(static_cast<float>(dst_sz.area())) * blend_strength / 100.f;
-      if (blend_width < 1.f)
-        blender = cv::detail::Blender::createDefault(cv::detail::Blender::NO, try_gpu);
-      else if (blend_type == cv::detail::Blender::MULTI_BAND)
-      {
-        cv::detail::MultiBandBlender* mb = dynamic_cast<cv::detail::MultiBandBlender*>(static_cast<cv::detail::Blender*>(blender));
-        mb->setNumBands(static_cast<int>(ceil(log(blend_width) / log(2.)) - 1.));
-        //LOGLN("Multi-band blender, number of bands: " << mb->numBands());
-      }
-      else if (blend_type == cv::detail::Blender::FEATHER)
-      {
-        cv::detail::FeatherBlender* fb = dynamic_cast<cv::detail::FeatherBlender*>(static_cast<cv::detail::Blender*>(blender));
-        fb->setSharpness(1.f / blend_width);
-        //LOGLN("Feather blender, sharpness: " << fb->sharpness());
-      }
-      blender->prepare(corners, sizes);
-    }
-
-    // Blend the current image
-    blender->feed(img_warped_s, mask_warped, corners[img_idx]);
-  }
-  blender->blend(result, result_mask);
-  //mwrite(result_name, result);
-  result.convertTo(result, CV_8UC1);
-  //namedWindow("stitch", WINDOW_NORMAL);
-  //imshow("stitch", result);
-  ttt = ((double)getTickCount() - ttt) / getTickFrequency();
-  cout << "总的拼接时间:" << ttt << endl;
- //waitKey(0);
-  Mat *ret =  new Mat(result);
-  return (jlong) ret;
+  return 0;
 }
 
 string jstring2str(JNIEnv* env, jstring jstr)
@@ -516,6 +201,17 @@ string jstring2str(JNIEnv* env, jstring jstr)
     std::string stemp(rtn);
     free(rtn);
     return   stemp;   
+}
+
+//计算原始图像点位在经过矩阵变换后在目标图像上对应位置
+Point2f getTransformPoint(const Point2f originalPoint, const Mat &transformMaxtri)
+{
+    Mat originelP, targetP;
+    originelP = (Mat_<double>(3, 1) << originalPoint.x, originalPoint.y, 1.0);
+    targetP = transformMaxtri*originelP;
+    float x = targetP.at<double>(0, 0) / targetP.at<double>(2, 0);
+    float y = targetP.at<double>(1, 0) / targetP.at<double>(2, 0);
+    return Point2f(x, y);
 }
 
 #ifdef __cplusplus

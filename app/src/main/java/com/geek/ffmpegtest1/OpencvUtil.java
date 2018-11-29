@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 public class OpencvUtil {
 
     static {
+//        System.loadLibrary("opencv_java3");
         System.loadLibrary("OpenCV");
     }
 
@@ -43,6 +44,6 @@ public class OpencvUtil {
 
     public static native int[] gray(int[] pix,int width,int height);
 
-    public static native long split(long img1,long img2);
+    public static native int split(String img1,String img2,String path);
 
 }
