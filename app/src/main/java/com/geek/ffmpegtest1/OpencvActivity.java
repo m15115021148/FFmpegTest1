@@ -63,6 +63,9 @@ public class OpencvActivity extends AppCompatActivity {
         mRun.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if (bitmap == null)return;
+
                 int w = bitmap.getWidth(), h = bitmap.getHeight();
                 int[] pix = new int[w * h];
                 bitmap.getPixels(pix, 0, w, 0, 0, w, h);
@@ -115,9 +118,9 @@ public class OpencvActivity extends AppCompatActivity {
     }
 
     public void onSplite(View view) {
-        savePath = FileUtil.getFolderName(mList.get(0));
-        savePath = savePath + "IMG_MERGE.jpg";
         if (mList.size()>0){
+            savePath = FileUtil.getFolderName(mList.get(0));
+            savePath = savePath + "IMG_MERGE.jpg";
             OpencvUtil.execute(mList.get(0), mList.get(1), savePath, new OpencvUtil.OpenCVRunListener() {
                 @Override
                 public void onStart() {
