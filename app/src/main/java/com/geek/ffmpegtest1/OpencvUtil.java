@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 public class OpencvUtil {
 
     static {
-//        System.loadLibrary("opencv_java3");
         System.loadLibrary("OpenCV");
     }
 
