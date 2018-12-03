@@ -9,10 +9,7 @@
 #include <iostream>
 #include <fstream>
 
-extern "C" {
 #include "ffmpeg/ffmpeg.h"
-};
-
 
 namespace android {
 

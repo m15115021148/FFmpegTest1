@@ -24,7 +24,7 @@
 
 namespace android {
 	int register_core_opencv(JNIEnv* env);
-//	int register_core_ffmpeg(JNIEnv* env);
+	int register_core_ffmpeg(JNIEnv* env);
 };
 
 using namespace android;
@@ -40,7 +40,7 @@ extern "C" jint JNI_OnLoad(JavaVM* vm, void* /* reserved */)
     }
 
 	register_core_opencv(env);
-//	register_core_ffmpeg(env);
+	register_core_ffmpeg(env);
 
     return JNI_VERSION_1_4;
 }
