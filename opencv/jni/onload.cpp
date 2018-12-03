@@ -23,7 +23,8 @@
 #define CUBIC_LOG_TAG  "JNIOnload"
 
 namespace android {
-	int register_opencv(JNIEnv* env);
+	int register_core_opencv(JNIEnv* env);
+//	int register_core_ffmpeg(JNIEnv* env);
 };
 
 using namespace android;
@@ -38,7 +39,8 @@ extern "C" jint JNI_OnLoad(JavaVM* vm, void* /* reserved */)
         return result;
     }
 
-	register_opencv(env);
+	register_core_opencv(env);
+//	register_core_ffmpeg(env);
 
     return JNI_VERSION_1_4;
 }

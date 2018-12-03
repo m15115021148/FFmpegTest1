@@ -13,15 +13,32 @@ include $(OPENCV_MK_PATH)
 endif
 #opecv end
 
+#include $(CLEAR_VARS)
+#LOCAL_MODULE := ffmpeg
+#LOCAL_SRC_FILES := ffmpeg/lib/$(TARGET_ARCH_ABI)/libffmpeg.so
+#LOCAL_C_INCLUDES :=/Users/cmm/Desktop/work/ffmpeg
+#include $(PREBUILT_SHARED_LIBRARY)
+
 LOCAL_MODULE := OpenCV
 LOCAL_SRC_FILES :=  onload.cpp \
                     JNIHelp.cpp \
-                    opencv.cpp
+                    core_opencv.cpp \
+#                    core_ffmpeg.cpp \
+#                    ffmpeg/ffmpeg.c \
+#                    ffmpeg/ffmpeg_opt.c \
+#                    ffmpeg/cmdutils.c \
+#                    ffmpeg/ffmpeg_filter.c \
+#                    ffmpeg/ffmpeg_hw.c
 
 
 LOCAL_LDLIBS +=  -lm -llog
 
+#LOCAL_C_INCLUDES :=/Users/cmm/Desktop/work/ffmpeg
+
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/util \
-                    $(LOCAL_PATH)/native/jni/include
+                    $(LOCAL_PATH)/native/jni/include \
+
+
+#LOCAL_SHARED_LIBRARIES := ffmpeg
 
 include $(BUILD_SHARED_LIBRARY)
