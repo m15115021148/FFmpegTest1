@@ -10,4 +10,6 @@ public class Test {
     private static native double split(String img1,String img2,String path);
 
     private static native int run(String[] commands);
+
+    private static native double readVideo(String video,String path);
 }

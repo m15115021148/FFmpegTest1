@@ -9,6 +9,12 @@
 #include <iostream>
 #include <fstream>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+
 #include "CUtil.cpp"
 
 #include "opencv2/highgui/highgui.hpp"
@@ -88,10 +94,75 @@ jdouble splice(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3){
     return time;
 }
 
+jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
+    double time = getTickCount();
+
+    LOGD("match start time=%f\n", time);
+
+    string v_path = CUtil::jstringTostring(env,video);
+    LOGD("v path play video %s",v_path.c_str());
+
+    VideoCapture capture(v_path);
+    //capture.open(1);
+
+    if (!capture.isOpened()){
+        LOGE("fail open video");
+        return 0;
+    }
+
+    int id = 1;
+    while (true) {
+        LOGD("start -- read frame-- =%d",id);
+
+        if (id >= 100){
+            break;
+        }
+
+        Mat frame;
+        //从视频中读取一个帧
+        /*bool bSuccess = capture.read(frame);
+        if (!bSuccess)
+        {
+            //cout << "不能从视频文件读取帧" << endl;
+            LOGE("不能从视频文件读取帧");
+            break;
+        }*/
+
+       // capture >> frame;
+
+        capture.grab(); //从视频文件或捕获设备获取下一帧
+        capture.retrieve(frame);//解码并返回抓取了的视频帧
+
+        if (frame.empty()){
+            LOGE("不能从视频文件读取帧");
+            break;
+        }
+
+
+        char name[512] = {0};
+        sprintf(name, "%s/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), id);
+
+        imwrite(name, frame);
+
+        id++;
+
+        waitKey(50);
+    }
+    capture.release();//这句话貌似不需要
+
+
+    time = getTickCount() - time;
+    time /= getTickFrequency();
+    LOGD("match end time=%f\n", time);
+
+    return time;
+}
+
 //---jni load--------
 static const JNINativeMethod methodsRx[] = {
 	{"gray", "([III)[I", (void*)gray },
 	{"split", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)D", (void*)splice },
+	{"readVideo","(Ljava/lang/String;Ljava/lang/String;)D",(void*)readVideo},
 };
 
 int register_core_opencv(JNIEnv *env){

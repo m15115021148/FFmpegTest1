@@ -86,7 +86,7 @@ public class SystemFunUtil {
                     Intent voice = new Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION);
                     context.startActivityForResult(voice, flag);
                     break;
-                case SYSTEM_IMAGE_PHONE://本地相册
+                case SYSTEM_IMAGE_PHONE:
                     Intent getAlbum = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     getAlbum.setType("video/*");
                     context.startActivityForResult(getAlbum, flag);

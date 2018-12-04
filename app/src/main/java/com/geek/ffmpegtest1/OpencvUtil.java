@@ -45,4 +45,6 @@ public class OpencvUtil {
 
     private static native double split(String img1,String img2,String path);
 
+    public static native double readVideo(String video,String path);
+
 }

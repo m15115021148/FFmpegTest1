@@ -163,4 +163,10 @@ public class MainActivity extends AppCompatActivity {
         intent.setClass(this,OpencvActivity.class);
         startActivity(intent);
     }
+
+    public void onVideo(View view) {
+        Intent intent = new Intent();
+        intent.setClass(this,VideoActivity.class);
+        startActivity(intent);
+    }
 }
