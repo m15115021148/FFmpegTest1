@@ -1,7 +1,7 @@
 //
 // Created by cmm on 2018/11/30.
 //
-#include "JNIHelp.h"
+#include <jni.h>
 #include "cubic_inc.h"
 #include <string>
 #include <stdio.h>
@@ -25,9 +25,8 @@
 using namespace cv;
 using namespace std;
 
-namespace android {
 
-jintArray gray(JNIEnv *env, jclass obj, jintArray buf, int w, int h){
+JNIEXPORT jintArray JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_gray(JNIEnv *env, jclass obj, jintArray buf, int w, int h){
 	jint *cbuf;
     cbuf = env->GetIntArrayElements(buf, JNI_FALSE );
     if (cbuf == NULL) {
@@ -53,7 +52,7 @@ jintArray gray(JNIEnv *env, jclass obj, jintArray buf, int w, int h){
     return result;
 }
 
-jdouble splice(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3){
+JNIEXPORT jdouble JNICALL Java_com_geek_ffmpegtest1_OpencvUtil_splice(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3){
 
     double time = getTickCount();
 
@@ -87,16 +86,4 @@ jdouble splice(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3){
 
     return time;
 }
-
-//---jni load--------
-static const JNINativeMethod methodsRx[] = {
-	{"gray", "([III)[I", (void*)gray },
-	{"split", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)D", (void*)splice },
-};
-
-int register_core_opencv(JNIEnv *env){
-	return jniRegisterNativeMethods(env, "com/geek/ffmpegtest1/OpencvUtil", methodsRx, NELEM(methodsRx) );
-}
-
-};
 

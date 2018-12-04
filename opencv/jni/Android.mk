@@ -19,11 +19,10 @@ LOCAL_SRC_FILES := ffmpeg/lib/$(TARGET_ARCH_ABI)/libffmpeg.so
 LOCAL_C_INCLUDES :=/Users/cmm/Desktop/work/ffmpeg
 include $(PREBUILT_SHARED_LIBRARY)
 
-LOCAL_MODULE := OpenCV
-LOCAL_SRC_FILES :=  onload.cpp \
-                    JNIHelp.cpp \
-                    core_opencv.cpp \
-                    core_ffmpeg.cpp \
+#include $(CLEAR_VARS)
+LOCAL_MODULE := core
+LOCAL_SRC_FILES :=  core_opencv.cpp \
+#                    core_ffmpeg.c \
                     ffmpeg/ffmpeg.c \
                     ffmpeg/ffmpeg_opt.c \
                     ffmpeg/cmdutils.c \
@@ -31,12 +30,11 @@ LOCAL_SRC_FILES :=  onload.cpp \
                     ffmpeg/ffmpeg_hw.c
 
 
-LOCAL_LDLIBS +=  -lm -llog
-
-LOCAL_C_INCLUDES :=/Users/cmm/Desktop/work/ffmpeg
+LOCAL_LDLIBS +=  -lm -llog -lz -ldl
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/util \
                     $(LOCAL_PATH)/native/jni/include \
+#                    Users/cmm/Desktop/work/ffmpeg
 
 
 LOCAL_SHARED_LIBRARIES := ffmpeg
