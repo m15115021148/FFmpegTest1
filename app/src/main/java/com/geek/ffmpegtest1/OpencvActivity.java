@@ -120,8 +120,13 @@ public class OpencvActivity extends AppCompatActivity {
     public void onSplite(View view) {
         if (mList.size()>0){
             savePath = FileUtil.getFolderName(mList.get(0));
-            savePath = savePath + "IMG_MERGE.jpg";
-            OpencvUtil.execute(mList.get(0), mList.get(1), savePath, new OpencvUtil.OpenCVRunListener() {
+            Log.d("chenmeng","savePath->"+savePath);
+//            savePath = savePath + "IMG_MERGE.jpg";
+            OpencvUtil.execute(
+                    mList.get(0),
+                    mList.get(1),
+                    FileUtil.getFolderName(mList.get(0)),
+                    FileUtil.getFolderName(mList.get(1)), "/storage/emulated/0/DCIM/Camera/image/merge", new OpencvUtil.OpenCVRunListener() {
                 @Override
                 public void onStart() {
                     progressDialog.show();
@@ -133,8 +138,8 @@ public class OpencvActivity extends AppCompatActivity {
 
                     Toast.makeText(OpencvActivity.this,"时间："+result,Toast.LENGTH_SHORT).show();
 
-                    Bitmap bitmap = BitmapFactory.decodeFile(savePath);
-                    img2.setImageBitmap(bitmap);
+//                    Bitmap bitmap = BitmapFactory.decodeFile(savePath);
+//                    img2.setImageBitmap(bitmap);
                 }
             });
         }

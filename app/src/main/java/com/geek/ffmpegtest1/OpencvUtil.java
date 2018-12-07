@@ -11,7 +11,7 @@ public class OpencvUtil {
         System.loadLibrary("OpenCV");
     }
 
-    public static void execute(String img1,String img2,String path,final OpenCVRunListener listener){
+    public static void execute(String img1, String img2, String img3, String img4, final String path, final OpenCVRunListener listener){
         new AsyncTask<String, Double, Double>(){
 
             @Override
@@ -23,7 +23,7 @@ public class OpencvUtil {
 
             @Override
             protected Double doInBackground(String... params) {
-                return split(params[0],params[1],params[2]);
+                return merge(params[0],params[1],params[2],params[3],params[4]);
             }
 
             @Override
@@ -32,7 +32,7 @@ public class OpencvUtil {
                     listener.onEnd(integer);
                 }
             }
-        }.execute(img1,img2,path);
+        }.execute(img1,img2,img3,img4,path);
     }
 
 
@@ -43,6 +43,8 @@ public class OpencvUtil {
 
     public static native int[] gray(int[] pix,int width,int height);
 
-    private static native double split(String img1,String img2,String path);
+    private static native double merge(String img1,String img2,String img3,String img4,String path);
+
+
 
 }
