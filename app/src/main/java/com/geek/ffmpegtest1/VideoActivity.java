@@ -41,30 +41,30 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     public void onSelect(View view) {
-//        util.openCamera(SystemFunUtil.SYSTEM_IMAGE_PHONE,1);
-        util.openCamera(SystemFunUtil.SYSTEM_SELECT_IMAGE,1);
+        util.openCamera(SystemFunUtil.SYSTEM_IMAGE_PHONE,1);
+//        util.openCamera(SystemFunUtil.SYSTEM_SELECT_IMAGE,1);
     }
 
     public void onRun(View view) {
         if (mList.size()>0){
             savePath = FileUtil.getFolderName(mList.get(0));
 
-//            OpencvUtil.readVideo(mList.get(0),savePath);
+            OpencvUtil.readVideo(mList.get(0),savePath);
 
 
 
-        FFmpegUtil.execute(CommandsUtil.playVideo(savePath+"/%%d.jpg", savePath+"/video.mp4"), new FFmpegUtil.FFmpegRunListener() {
-            @Override
-            public void onStart() {
-                progressDialog.show();
-            }
-
-            @Override
-            public void onEnd(int result) {
-                progressDialog.dismiss();
-                Toast.makeText(VideoActivity.this,"success",Toast.LENGTH_SHORT).show();
-            }
-        });
+//        FFmpegUtil.execute(CommandsUtil.playVideo(savePath+"/%%d.jpg", savePath+"/video.mp4"), new FFmpegUtil.FFmpegRunListener() {
+//            @Override
+//            public void onStart() {
+//                progressDialog.show();
+//            }
+//
+//            @Override
+//            public void onEnd(int result) {
+//                progressDialog.dismiss();
+//                Toast.makeText(VideoActivity.this,"success",Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
         }
     }
