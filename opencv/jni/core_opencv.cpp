@@ -52,7 +52,7 @@ bool save_graph = false;
 std::string save_graph_to;
 string warp_type = "spherical";
 int expos_comp_type = ExposureCompensator::GAIN_BLOCKS;
-float match_conf = 0.3f;
+float match_conf = 0.6f;
 string seam_find_type = "gc_color";
 int blend_type = Blender::MULTI_BAND;
 int timelapse_type = Timelapser::AS_IS;
@@ -789,11 +789,11 @@ jdouble merge(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3,jst
 
     // Check if we still have enough images
     num_images = static_cast<int>(img_names.size());
-//    if (num_images < 2)
- //   {
-//        LOGE("Need more images");
- //       return -1;
- //   }
+    if (num_images < 2)
+    {
+        LOGE("Need more images");
+        return -1;
+    }
 
     Ptr<Estimator> estimator;
     if (estimator_type == "affine")
@@ -1038,8 +1038,8 @@ jdouble merge(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3,jst
 
         sprintf(imgleft, "%s/%0d.jpg", CUtil::jstringTostring(env,img3).c_str(), step_turn);
         sprintf(imgright, "%s/%0d.jpg", CUtil::jstringTostring(env,img4).c_str(), step_turn);
-        LOGD("imgleft %s=",imgleft);
-        LOGD("imgright %s=",imgright);
+        LOGD("imgleft = %s",imgleft);
+        LOGD("imgright = %s",imgright);
 
         for (int img_idx = 0; img_idx < num_images; ++img_idx)
         {
@@ -1200,9 +1200,10 @@ jdouble merge(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3,jst
             //imwrite(imgname, result);
             char name[512] = {0};
             sprintf(name, "%s/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), step_turn);
+            LOGD("name = %s",name);
             //imshow("name", result);
             //imwrite(jstring2str(env,img3), result_mask,compression_params);
-            //imwrite(name, result);
+            imwrite(name, result);
 
         }
     }
