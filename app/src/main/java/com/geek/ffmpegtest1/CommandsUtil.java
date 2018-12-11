@@ -64,6 +64,34 @@ public class CommandsUtil {
     }
 
 
+    /**
+     * //ffmpeg -threads2 -y -r 10 -i /tmpdir/image%04d.jpg -i audio.mp3 -absf aac_adtstoasc output.mp4
+     * @return
+     *
+     * ffmpeg -f image2 -i /images/%d.jpg -vcodec libx264 -r 25 -b 200k test.mp4
+     */
+    public static String[] playVideo(String inputPath,String outPathName){
+        ArrayList<String> list = new ArrayList<>();
+        list.add("ffmpeg");
+        list.add("-f");
+        list.add("image2");
+        list.add("-i");
+        list.add(inputPath);
+        list.add("-vcodec");
+        list.add("libx264");
+        list.add("-r");
+        list.add("25");
+        list.add("-b");
+        list.add("200k");
+        list.add(outPathName);
+        String[] commands = new String[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            commands[i] = list.get(i);
+        }
+        return commands;
+    }
+
+
 
 
 }
