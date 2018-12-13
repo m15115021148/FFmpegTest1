@@ -103,7 +103,6 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
     LOGD("v path play video %s",v_path.c_str());
 
     VideoCapture capture(v_path);
-    //capture.open(1);
 
     if (!capture.isOpened()){
         LOGE("fail open video");
@@ -128,10 +127,10 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
             break;
         }*/
 
-       // capture >> frame;
+        capture >> frame;
 
-        capture.grab(); //从视频文件或捕获设备获取下一帧
-        capture.retrieve(frame);//解码并返回抓取了的视频帧
+        //capture.grab(); //从视频文件或捕获设备获取下一帧
+       // capture.retrieve(frame);//解码并返回抓取了的视频帧
 
         if (frame.empty()){
             LOGE("不能从视频文件读取帧");
@@ -146,7 +145,7 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
 
         id++;
 
-        waitKey(50);
+        //WaitKey(50);
     }
     capture.release();//这句话貌似不需要
 
