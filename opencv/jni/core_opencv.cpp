@@ -111,32 +111,22 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
 
     int id = 1;
     while (true) {
-        LOGD("start -- read frame-- =%d",id);
-
-        if (id >= 100){
-            break;
-        }
+        LOGD("start -- read frame =%d",id);
 
         Mat frame;
-        //从视频中读取一个帧
-        /*bool bSuccess = capture.read(frame);
-        if (!bSuccess)
-        {
-            //cout << "不能从视频文件读取帧" << endl;
-            LOGE("不能从视频文件读取帧");
-            break;
-        }*/
 
-        capture >> frame;
-
-        //capture.grab(); //从视频文件或捕获设备获取下一帧
-       // capture.retrieve(frame);//解码并返回抓取了的视频帧
-
-        if (frame.empty()){
-            LOGE("不能从视频文件读取帧");
+        bool bSuccess = capture.read(frame);
+        if (!bSuccess){
+            LOGE("read mat frame is empty");
             break;
         }
 
+       // capture >> frame;
+
+        if (frame.empty()){
+            LOGE("read mat frame is empty");
+            break;
+        }
 
         char name[512] = {0};
         sprintf(name, "%s/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), id);
@@ -145,10 +135,8 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
 
         id++;
 
-        //WaitKey(50);
     }
-    capture.release();//这句话貌似不需要
-
+    capture.release();
 
     time = getTickCount() - time;
     time /= getTickFrequency();
