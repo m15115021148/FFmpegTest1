@@ -1,9 +1,12 @@
 package com.geek.ffmpegtest1.util;
 
+import android.graphics.Bitmap;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -537,6 +540,24 @@ public class FileUtil {
         return (file.exists() && file.isFile() ? file.length() : -1);
     }
 
+
+    public static void saveBitmap(String path, Bitmap bm) {
+        File f = new File(path);
+        if (f.exists()) {
+            f.delete();
+        }
+        try {
+            FileOutputStream out = new FileOutputStream(f);
+            bm.compress(Bitmap.CompressFormat.PNG, 90, out);
+            out.flush();
+            out.close();
+            Log.d("chenmeng","--success-");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static class IO {
         /**

@@ -94,36 +94,38 @@ jdouble splice(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3){
     return time;
 }
 
-jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
+jdouble readVideo(JNIEnv *env, jclass obj,jstring videoFirst, jstring videoSecond, jstring path){
     double time = getTickCount();
 
-    LOGD("match start time=%f\n", time);
+    string v_first = CUtil::jstringTostring(env,videoFirst);
+    string v_second = CUtil::jstringTostring(env,videoSecond);
 
-    string v_path = CUtil::jstringTostring(env,video);
-    LOGD("v path play video %s",v_path.c_str());
+    VideoCapture capture1(v_first);
+    VideoCapture capture2(v_second);
 
-    VideoCapture capture(v_path);
-
-    if (!capture.isOpened()){
+    if (!capture1.isOpened() && !capture2.isOpened() ){
         LOGE("fail open video");
-        return 0;
+        return -1;
     }
 
     int id = 1;
+
     while (true) {
         LOGD("start -- read frame =%d",id);
 
-        Mat frame;
+        Mat frame1,frame2;
 
-        bool bSuccess = capture.read(frame);
-        if (!bSuccess){
+        bool b_first = capture1.read(frame1);
+        bool b_second = capture2.read(frame2);
+
+        if (!b_first && !b_second ){
             LOGE("read mat frame is empty");
             break;
         }
 
        // capture >> frame;
 
-        if (frame.empty()){
+        if (frame1.empty() || frame2.empty() ){
             LOGE("read mat frame is empty");
             break;
         }
@@ -131,12 +133,13 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
         char name[512] = {0};
         sprintf(name, "%s/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), id);
 
-        imwrite(name, frame);
+        //imwrite(name, frame);
 
         id++;
 
     }
-    capture.release();
+    capture1.release();
+    capture2.release();
 
     time = getTickCount() - time;
     time /= getTickFrequency();
@@ -149,7 +152,7 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring video,jstring path){
 static const JNINativeMethod methodsRx[] = {
 	{"gray", "([III)[I", (void*)gray },
 	{"split", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)D", (void*)splice },
-	{"readVideo","(Ljava/lang/String;Ljava/lang/String;)D",(void*)readVideo},
+	{"readVideo","(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)D",(void*)readVideo},
 };
 
 int register_core_opencv(JNIEnv *env){

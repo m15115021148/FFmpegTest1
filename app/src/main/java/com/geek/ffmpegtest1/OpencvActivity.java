@@ -74,6 +74,8 @@ public class OpencvActivity extends AppCompatActivity {
                 result.setPixels(resultPixes, 0, w, 0, 0,w, h);
 
                 img2.setImageBitmap(result);
+
+//                FileUtil.saveBitmap(FileUtil.getFolderName(mList.get(0))+"/aa.jpg",result);
             }
         });
 
