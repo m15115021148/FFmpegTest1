@@ -35,6 +35,31 @@ public class OpencvUtil {
         }.execute(img1,img2,img3,img4,path);
     }
 
+    public static void executeVideo(String imgPath,String videoPath,final OpenCVRunListener listener){
+        new AsyncTask<String,Integer,Integer>(){
+
+            @Override
+            protected void onPreExecute() {
+                if (listener != null) {
+                    listener.onStart();
+                }
+            }
+
+            @Override
+            protected Integer doInBackground(String... params) {
+                return videoPlay(params[0],params[1]);
+            }
+
+            @Override
+            protected void onPostExecute(Integer integer) {
+                if (listener != null) {
+                    listener.onEnd(integer);
+                }
+            }
+
+        }.execute(imgPath,videoPath);
+    }
+
 
     public interface OpenCVRunListener{
         void onStart();
@@ -45,6 +70,7 @@ public class OpencvUtil {
 
     private static native double merge(String img1,String img2,String img3,String img4,String path);
 
+    public static native int videoPlay(String imgPath,String videoPath);
 
 
 }

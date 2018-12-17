@@ -656,7 +656,7 @@ jdouble merge(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3,jst
     int num_images = static_cast<int>(img_names.size());
     if (num_images < 2)
     {
-        LOGD("Need more images");
+        LOGD("Need more images---1");
         return -1;
     }
 
@@ -791,7 +791,7 @@ jdouble merge(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3,jst
     num_images = static_cast<int>(img_names.size());
     if (num_images < 2)
     {
-        LOGE("Need more images");
+        LOGE("Need more images---2");
         return -1;
     }
 
@@ -1220,11 +1220,54 @@ jdouble merge(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3,jst
     return time;
 }
 
+jint videoPlay(JNIEnv *env, jclass obj,jstring imgPath,jstring videoPath){
+    string img_path = CUtil::jstringTostring(env,videoPath);
+
+    LOGD("img path ->%s",img_path.c_str() );
+
+    // 构造一个VideoWriter
+    VideoWriter video(img_path, CV_FOURCC('M', 'J', 'P', 'G'), 25.0, Size(640, 720));
+
+    // 从一个文件夹下读取多张jpg图片
+    //String pattern = "G:\\temp_picture\\*.jpg";
+    string pattern = CUtil::jstringTostring(env,imgPath);
+    vector<String> fn;
+
+    glob(pattern, fn, false);
+
+    size_t count = fn.size();
+
+    LOGD("read img size = %d",count);
+
+    for (size_t i = 1; i <= count; i++)
+    {
+        stringstream str;
+        str << i << ".jpg";
+        string img = pattern + str.str();
+        LOGD("img --> %s",img.c_str() );
+        Mat image = imread(img);
+
+        if (image.empty()){
+            LOGE("fail error mat empty");
+            return 1;
+        }
+
+        resize(image, image, Size(640, 720));
+        video << image;
+
+    }
+
+    LOGD("处理完毕！");
+
+    return 1;
+}
+
 //---jni load--------
 static const JNINativeMethod methodsRx[] = {
 	{"gray", "([III)[I", (void*)gray },
 //	{"split", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)D", (void*)splice },
 	{"merge", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)D", (void*)merge },
+	{"videoPlay", "(Ljava/lang/String;Ljava/lang/String;)I", (void*)videoPlay },
 };
 
 int register_core_opencv(JNIEnv *env){

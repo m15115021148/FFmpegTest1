@@ -40,4 +40,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <Button
+        android:text="MERGE VIDEO"
+        android:layout_margin="10dp"
+        android:onClick="onMergeVideo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>
