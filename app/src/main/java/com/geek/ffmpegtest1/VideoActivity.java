@@ -11,6 +11,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.geek.ffmpegtest1.util.FileUtil;
 import com.geek.ffmpegtest1.util.SystemFunUtil;
@@ -44,10 +45,22 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     public void onRun(View view) {
-        if (mList.size()>0){
+        if (mList.size()>1){
             savePath = FileUtil.getFolderName(mList.get(0));
 
-            OpencvUtil.readVideo(mList.get(0),savePath);
+            OpencvUtil.executeReadVideo(mList.get(0),
+                    mList.get(1), savePath, new OpencvUtil.OpenCVRunListener() {
+                        @Override
+                        public void onStart() {
+                            progressDialog.show();
+                        }
+
+                        @Override
+                        public void onEnd(double result) {
+                            progressDialog.dismiss();
+                            Toast.makeText(VideoActivity.this,"success",Toast.LENGTH_SHORT).show();
+                        }
+                    });
 
         }
     }
@@ -63,9 +76,17 @@ public class VideoActivity extends AppCompatActivity {
                     return;
                 }
                 mList.add(path);
-                mTv.setText(path);
+                showTv(path);
             }
         }
 
+    }
+
+    private void showTv(String txt){
+        StringBuilder sb = new StringBuilder();
+        sb.append(mTv.getText().toString());
+        sb.append("\n");
+        sb.append(txt);
+        mTv.setText(sb.toString());
     }
 }

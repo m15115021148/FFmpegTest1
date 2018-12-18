@@ -123,17 +123,18 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring videoFirst, jstring videoSecon
             break;
         }
 
-       // capture >> frame;
-
         if (frame1.empty() || frame2.empty() ){
             LOGE("read mat frame is empty");
             break;
         }
 
-        char name[512] = {0};
-        sprintf(name, "%s/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), id);
+        char name1[512] = {0};
+        char name2[521] = {0};
+        sprintf(name1, "%s/first/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), id);
+        sprintf(name2, "%s/second/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), id);
 
-        //imwrite(name, frame);
+        imwrite(name1, frame1);
+        imwrite(name2, frame2);
 
         id++;
 

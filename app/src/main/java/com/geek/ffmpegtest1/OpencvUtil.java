@@ -35,6 +35,30 @@ public class OpencvUtil {
         }.execute(img1,img2,path);
     }
 
+    public static void executeReadVideo(String path1,String path2,String path,final OpenCVRunListener listener){
+        new AsyncTask<String, Double, Double>(){
+
+            @Override
+            protected void onPreExecute() {
+                if (listener != null) {
+                    listener.onStart();
+                }
+            }
+
+            @Override
+            protected Double doInBackground(String... params) {
+                return readVideo(params[0],params[1],params[2]);
+            }
+
+            @Override
+            protected void onPostExecute(Double integer) {
+                if (listener != null) {
+                    listener.onEnd(integer);
+                }
+            }
+        }.execute(path1,path2,path);
+    }
+
 
     public interface OpenCVRunListener{
         void onStart();
@@ -45,6 +69,6 @@ public class OpencvUtil {
 
     private static native double split(String img1,String img2,String path);
 
-    public static native double readVideo(String video,String path);
+    public static native double readVideo(String videoFirst,String videoSecond,String path);
 
 }
