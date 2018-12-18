@@ -89,6 +89,12 @@ float warped_image_scale;
 Ptr<WarperCreator> warper_creator;
 vector<CameraParams> cameras;
 
+vector<Point> corners(num_images);
+vector<UMat> masks_warped(num_images);
+vector<UMat> images_warped(num_images);
+vector<Size> sizes(num_images);
+vector<UMat> masks(num_images);
+
 
 #ifdef CUBIC_LOG_TAG
 #undef CUBIC_LOG_TAG
@@ -104,7 +110,8 @@ double time = getTickCount();
         int64 app_start_time = getTickCount();
 
         //LOGD("match start time=%f\n", time);
-
+    if(!initialized_already)
+    {
         Mat pano;
 
 #if ENABLE_LOG
@@ -122,19 +129,24 @@ double time = getTickCount();
             return empty;
         }
 
-        vector<Point> corners(num_images);
-        vector<UMat> masks_warped(num_images);
-        vector<UMat> images_warped(num_images);
-        vector<Size> sizes(num_images);
-        vector<UMat> masks(num_images);
+        //vector<Point> corners(num_images);
+        //vector<UMat> masks_warped(num_images);
+        //vector<UMat> images_warped(num_images);
+        //vector<Size> sizes(num_images);
+        //vector<UMat> masks(num_images);
+
+        //corners = static_cast<Point>(num_images);
+        //masks_warped = static_cast<UMat>(num_images);
+        //images_warped = static_cast<UMat>(num_images);
+        //sizes = static_cast<Size>(num_images);
+        //masks = static_cast<UMat>(num_images);
 
         LOGD("Finding features...");
 
 #if ENABLE_LOG
         int64 t = getTickCount();
 #endif
-    if(!initialized_already)
-    {
+
         initialized_already = true;
         Ptr<FeaturesFinder> finder;
         if (features_type == "surf"){
@@ -467,7 +479,7 @@ double time = getTickCount();
 		double compose_work_aspect = 1;
 
 		for (int img_idx = 0; img_idx < num_images; ++img_idx){
-			LOGD("Compositing image #%d" , indices[img_idx] + 1);
+			//LOGD("Compositing image #%d" , indices[img_idx] + 1);
 			if (!is_registration_finished)
 			{
 				switch (img_idx){
@@ -566,7 +578,7 @@ double time = getTickCount();
 				else if (blend_type == Blender::MULTI_BAND){
 					MultiBandBlender* mb = dynamic_cast<MultiBandBlender*>(blender.get());
 					mb->setNumBands(static_cast<int>(ceil(log(blend_width) / log(2.)) - 1.));
-					LOGD("Multi-band blender, number of bands: " );
+					//LOGD("Multi-band blender, number of bands: " );
 				}
 				else if (blend_type == Blender::FEATHER){
 					FeatherBlender* fb = dynamic_cast<FeatherBlender*>(blender.get());
@@ -602,7 +614,7 @@ double time = getTickCount();
 			//sprintf(name, "%s/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), step_turn);
 			//LOGD("name = %s",name);
 			//imwrite(name, result);
-			LOGD("splice image time=%f: ", ((getTickCount() - app_start_time) / getTickFrequency()));
+			//LOGD("splice image time=%f: ", ((getTickCount() - app_start_time) / getTickFrequency()));
 			return result;
 		}
 
@@ -672,7 +684,7 @@ jdouble splice(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3){
 
 jdouble readVideo(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring videoFirst, jstring videoSecond, jstring path){
     double time = getTickCount();
-    double splice_time = 0;
+    double splice_time = getTickCount();
 
     string img_1 = CUtil::jstringTostring(env,img1);
     string img_2 = CUtil::jstringTostring(env,img2);
@@ -727,7 +739,7 @@ jdouble readVideo(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring vide
 
         splice_time = getTickCount() - splice_time;
         splice_time /= getTickFrequency();
-        LOGD("splice image time=%f\n", splice_time);
+        LOGD("splice image splice_time=%f\n", splice_time);
 
         char name[512] = {0};
         sprintf(name, "%s/merge/%0d.jpg", CUtil::jstringTostring(env,path).c_str(), id);
