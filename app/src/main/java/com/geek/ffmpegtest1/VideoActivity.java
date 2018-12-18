@@ -21,8 +21,9 @@ import java.util.List;
 
 public class VideoActivity extends AppCompatActivity {
     private String TAG = VideoActivity.class.getSimpleName();
-    private TextView mTv;
+    private TextView mTv,mImgTv;
     private SystemFunUtil util;
+    private List<String> mListImg = new ArrayList<>();
     private List<String> mList = new ArrayList<>();
     private String savePath;
     private ProgressDialog progressDialog;
@@ -33,6 +34,7 @@ public class VideoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_video);
 
         mTv = findViewById(R.id.videoPath);
+        mImgTv = findViewById(R.id.imgPath);
 
         util = new SystemFunUtil(this);
 
@@ -48,7 +50,10 @@ public class VideoActivity extends AppCompatActivity {
         if (mList.size()>1){
             savePath = FileUtil.getFolderName(mList.get(0));
 
-            OpencvUtil.executeReadVideo(mList.get(0),
+            OpencvUtil.executeReadVideo(
+                    mListImg.get(0),
+                    mListImg.get(1),
+                    mList.get(0),
                     mList.get(1), savePath, new OpencvUtil.OpenCVRunListener() {
                         @Override
                         public void onStart() {
@@ -76,17 +81,31 @@ public class VideoActivity extends AppCompatActivity {
                     return;
                 }
                 mList.add(path);
-                showTv(path);
+                showTv(mTv,path);
+            }
+            if (requestCode == 2){
+                Uri uriVideo = data.getData();
+                String path = util.getImageAbsolutePath(uriVideo);
+                Log.d(TAG,"path-->"+path);
+                if (TextUtils.isEmpty(path)){
+                    return;
+                }
+                mListImg.add(path);
+                showTv(mImgTv,path);
             }
         }
 
     }
 
-    private void showTv(String txt){
+    private void showTv(TextView tv,String txt){
         StringBuilder sb = new StringBuilder();
-        sb.append(mTv.getText().toString());
+        sb.append(tv.getText().toString());
         sb.append("\n");
         sb.append(txt);
-        mTv.setText(sb.toString());
+        tv.setText(sb.toString());
+    }
+
+    public void onImageSelect(View view) {
+        util.openCamera(SystemFunUtil.SYSTEM_SELECT_IMAGE,2);
     }
 }
