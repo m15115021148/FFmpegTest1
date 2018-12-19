@@ -25,11 +25,11 @@ ifeq ($(OPENCV_LIB_TYPE),)
 endif
 
 ifeq ($(OPENCV_LIB_TYPE),SHARED)
-    OPENCV_LIBS:=stitching superres videostab aruco bgsegm bioinspired ccalib dnn_objdetect dpm face photo fuzzy hfs img_hash line_descriptor optflow reg rgbd saliency stereo structured_light phase_unwrapping surface_matching tracking datasets text dnn plot xfeatures2d shape video ml ximgproc calib3d features2d highgui videoio flann xobjdetect imgcodecs objdetect xphoto imgproc core
+    OPENCV_LIBS:=java3
     OPENCV_LIB_TYPE:=SHARED
 else
     OPENCV_LIBS:=$(OPENCV_MODULES)
-    OPENCV_LIB_TYPE:=SHARED
+    OPENCV_LIB_TYPE:=STATIC
 endif
 
 ifeq ($(OPENCV_LIB_TYPE),SHARED)
