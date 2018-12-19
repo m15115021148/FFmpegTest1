@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.geek.ffmpegtest1.util.FileNames;
 import com.geek.ffmpegtest1.util.FileUtil;
 import com.geek.ffmpegtest1.util.SystemFunUtil;
+import com.geek.ffmpegtest1.video.R;
 
 import java.io.File;
 import java.io.IOException;

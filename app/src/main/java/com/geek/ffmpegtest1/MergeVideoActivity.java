@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import com.geek.ffmpegtest1.video.R;
+
 public class MergeVideoActivity extends AppCompatActivity {
     private String imgPath = "/storage/emulated/0/DCIM/Camera/opencv/merge/";
     private String videoName = "storage/emulated/0/DCIM/Camera/opencv/play_video.avi";
