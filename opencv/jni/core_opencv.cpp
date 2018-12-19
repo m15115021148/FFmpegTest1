@@ -1226,7 +1226,7 @@ jint videoPlay(JNIEnv *env, jclass obj,jstring imgPath,jstring videoPath){
     LOGD("img path ->%s",img_path.c_str() );
 
     // 构造一个VideoWriter
-    VideoWriter video(img_path, CV_FOURCC('M', 'J', 'P', 'G'), 25.0, Size(1993, 385));
+    VideoWriter video(img_path, CV_FOURCC('M', 'J', 'P', 'G'), 25.0, Size(1160, 485));
 
     // 从一个文件夹下读取多张jpg图片
     //String pattern = "G:\\temp_picture\\*.jpg";
@@ -1239,7 +1239,7 @@ jint videoPlay(JNIEnv *env, jclass obj,jstring imgPath,jstring videoPath){
 
     LOGD("read img size = %d",count);
 
-    for (size_t i = 0; i < count; i++)
+    for (size_t i = 1; i <= count; i++)
     {
         stringstream str;
         str << i << ".jpg";
@@ -1252,7 +1252,7 @@ jint videoPlay(JNIEnv *env, jclass obj,jstring imgPath,jstring videoPath){
             return 1;
         }
 
-        resize(image, image, Size(1993, 385));
+        resize(image, image, Size(1160, 485));
         video << image;
 
     }

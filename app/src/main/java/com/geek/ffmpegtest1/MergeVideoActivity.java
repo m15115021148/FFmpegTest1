@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Toast;
 
 public class MergeVideoActivity extends AppCompatActivity {
-    private String imgPath = "/storage/emulated/0/DCIM/Camera/image/merge/";
+    private String imgPath = "/storage/emulated/0/DCIM/Camera/opencv/merge/";
     private String videoName = "storage/emulated/0/DCIM/Camera/opencv/play_video.avi";
     private ProgressDialog progressDialog;
 
