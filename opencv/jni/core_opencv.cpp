@@ -334,6 +334,7 @@ double time = getTickCount();
         t = getTickCount();
 #endif
 
+        LOGD("cuda is support values :%d",cuda::getCudaEnabledDeviceCount());
 
 
         // Preapre images masks
