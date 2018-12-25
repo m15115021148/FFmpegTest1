@@ -134,7 +134,7 @@
 /* #undef HAVE_NVCUVENC */
 
 /* OpenCL Support */
-/* #undef HAVE_OPENCL */
+#define HAVE_OPENCL
 /* #undef HAVE_OPENCL_STATIC */
 /* #undef HAVE_OPENCL_SVM */
 
@@ -172,7 +172,7 @@
 /* #undef HAVE_QTKIT */
 
 /* Intel Threading Building Blocks */
-/* #undef HAVE_TBB */
+#define HAVE_TBB
 
 /* TIFF codec */
 #define HAVE_TIFF

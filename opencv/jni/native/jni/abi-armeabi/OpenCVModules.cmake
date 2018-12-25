@@ -16,7 +16,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget libcpufeatures libjpeg-turbo libtiff libwebp libjasper libpng IlmImf libprotobuf tegra_hal opencv_core opencv_flann opencv_imgproc opencv_ml opencv_objdetect opencv_phase_unwrapping opencv_photo opencv_plot opencv_reg opencv_surface_matching opencv_video opencv_xphoto opencv_dnn opencv_face opencv_fuzzy opencv_hfs opencv_img_hash opencv_imgcodecs opencv_shape opencv_videoio opencv_xobjdetect opencv_highgui opencv_superres opencv_bioinspired opencv_dnn_objdetect opencv_dpm opencv_features2d opencv_line_descriptor opencv_saliency opencv_text opencv_calib3d opencv_ccalib opencv_datasets opencv_rgbd opencv_stereo opencv_structured_light opencv_tracking opencv_videostab opencv_xfeatures2d opencv_ximgproc opencv_aruco opencv_bgsegm opencv_optflow opencv_stitching)
+foreach(_expectedTarget libcpufeatures libjpeg-turbo libtiff libwebp libjasper libpng IlmImf tbb libprotobuf tegra_hal opencv_core opencv_flann opencv_imgproc opencv_ml opencv_objdetect opencv_phase_unwrapping opencv_photo opencv_plot opencv_reg opencv_surface_matching opencv_video opencv_xphoto opencv_dnn opencv_face opencv_fuzzy opencv_hfs opencv_img_hash opencv_imgcodecs opencv_shape opencv_videoio opencv_xobjdetect opencv_highgui opencv_superres opencv_bioinspired opencv_dnn_objdetect opencv_dpm opencv_features2d opencv_line_descriptor opencv_saliency opencv_text opencv_calib3d opencv_ccalib opencv_datasets opencv_rgbd opencv_stereo opencv_structured_light opencv_tracking opencv_videostab opencv_xfeatures2d opencv_ximgproc opencv_aruco opencv_bgsegm opencv_optflow opencv_stitching)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -88,6 +88,14 @@ set_target_properties(IlmImf PROPERTIES
   INTERFACE_LINK_LIBRARIES "z"
 )
 
+# Create imported target tbb
+add_library(tbb STATIC IMPORTED)
+
+set_target_properties(tbb PROPERTIES
+  INTERFACE_COMPILE_DEFINITIONS "TBB_USE_GCC_BUILTINS=1;__TBB_GCC_BUILTIN_ATOMICS_PRESENT=1"
+  INTERFACE_LINK_LIBRARIES "c;m;dl"
+)
+
 # Create imported target libprotobuf
 add_library(libprotobuf STATIC IMPORTED)
 
@@ -98,7 +106,7 @@ add_library(tegra_hal STATIC IMPORTED)
 add_library(opencv_core STATIC IMPORTED)
 
 set_target_properties(opencv_core PROPERTIES
-  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:dl>;\$<LINK_ONLY:m>;\$<LINK_ONLY:log>;\$<LINK_ONLY:tegra_hal>;\$<LINK_ONLY:z>;\$<LINK_ONLY:libcpufeatures>;\$<LINK_ONLY:tegra_hal>"
+  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:dl>;\$<LINK_ONLY:m>;\$<LINK_ONLY:log>;\$<LINK_ONLY:tegra_hal>;\$<LINK_ONLY:tbb>;\$<LINK_ONLY:z>;\$<LINK_ONLY:libcpufeatures>;\$<LINK_ONLY:tegra_hal>"
 )
 
 # Create imported target opencv_flann
