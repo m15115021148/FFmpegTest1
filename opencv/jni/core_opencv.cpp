@@ -31,6 +31,10 @@
 #include "opencv2/stitching/detail/warpers.hpp"
 #include "opencv2/stitching/warpers.hpp"
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/ocl.hpp>
+
 #define ENABLE_LOG 0
 #define LOG(msg) std::cout << msg
 #define LOGLN(msg) std::cout << msg << std::endl
@@ -684,6 +688,52 @@ jdouble splice(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring img3){
 }
 
 jdouble readVideo(JNIEnv *env, jclass obj,jstring img1,jstring img2,jstring videoFirst, jstring videoSecond, jstring path){
+
+//opencl is support?
+    try {
+        if (!cv::ocl::haveOpenCL()){
+            LOGD("OpenCL is not availble");
+        } else{
+            LOGD("OpenCL is avaible");
+        }
+        if (cv::ocl::useOpenCL()){
+            LOGD("use OpenCL");
+        } else{
+            LOGD("don't use OpenCL");
+        }
+        cv::ocl::Context context;
+        if (!context.create(cv::ocl::Device::TYPE_GPU))
+        {
+            LOGD("Failed creating the context...");
+            return -1;
+        }
+        else
+        {
+            LOGD("ocl::Context is OK");
+        }
+
+        LOGD(" %lu GPU devices are detected.",context.ndevices());
+        for (int i = 0; i < context.ndevices(); i++)
+        {
+            cv::ocl::Device device = context.device(i);
+            LOGD("name: %s",device.name().c_str());
+            if (device.available()){
+                LOGD("device is avaible");
+            } else{
+                LOGD("devive is not avaible");
+            }
+            if (device.imageSupport()){
+                LOGD("device support image");
+            } else{
+                LOGD("device doesn't support image");
+            }
+            LOGD("OpenCL_C_Version     : %s" ,device.OpenCL_C_Version().c_str());
+        }
+    }catch(cv::Error::Code& e){
+        LOGE("cv::Error::Code %d", e);
+        return -1;
+    }
+
     double time = getTickCount();
     double splice_time = getTickCount();
 
